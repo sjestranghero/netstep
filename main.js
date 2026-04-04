@@ -6,8 +6,9 @@ async function init() {
 
   if (user) {
     const { renderDashboard } = await import('./src/pages/dashboard.js')
-    renderDashboard()
+    await renderDashboard()
   } else {
+    window.location.hash = ''
     const { renderApp } = await import('./src/pages/home.js')
     renderApp()
   }

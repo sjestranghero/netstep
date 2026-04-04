@@ -12,13 +12,14 @@ export async function renderDashboard() {
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    window.location.hash = ''
     import('./auth.js').then(m => m.renderAuth())
     return
   }
 
   const name = user.user_metadata?.full_name || user.email.split('@')[0]
 
-app.innerHTML = `
+  app.innerHTML = `
     <div class="dw">
       <button class="toggle-btn" id="sidebar-toggle">☰</button>
       <div class="overlay" id="sidebar-overlay"></div>
@@ -27,7 +28,7 @@ app.innerHTML = `
         <div class="dsb-logo">NetStep <span class="logo-pill">BETA</span></div>
         <nav class="dsb-nav">
           <div class="nav-label">Learn</div>
-          <button class="ni active" data-sec="dashboard"><span class="ni-ic">⊞</span> Dashboard</button>
+          <button class="ni" data-sec="dashboard"><span class="ni-ic">⊞</span> Dashboard</button>
           <button class="ni" data-sec="lessons"><span class="ni-ic">📖</span> Lessons</button>
           <button class="ni" data-sec="quiz"><span class="ni-ic">🎯</span> Quiz Mode <span class="ni-badge">New</span></button>
           <button class="ni" data-sec="lab"><span class="ni-ic">💻</span> CLI Lab</button>
@@ -47,7 +48,7 @@ app.innerHTML = `
 
       <main class="dm">
 
-        <div id="sec-dashboard" class="ds active">
+        <div id="sec-dashboard" class="ds">
           <div class="dtop">
             <div>
               <h1 class="dtitle">Welcome back, ${name} 👋</h1>
@@ -119,16 +120,31 @@ app.innerHTML = `
   setupPathCards()
 }
 
+function navigateTo(sec) {
+  window.location.hash = sec
+  activateSection(sec)
+}
+
+function activateSection(sec) {
+  const validSections = ['dashboard', 'lessons', 'quiz', 'lab', 'leaderboard', 'resources']
+  const target = validSections.includes(sec) ? sec : 'dashboard'
+
+  document.querySelectorAll('.ds').forEach(s => s.classList.remove('active'))
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'))
+
+  const secEl = document.getElementById('sec-' + target)
+  const navEl = document.querySelector(`[data-sec="${target}"]`)
+
+  if (secEl) secEl.classList.add('active')
+  if (navEl) navEl.classList.add('active')
+}
+
 function setupHandlers() {
   document.querySelectorAll('.ni').forEach(btn => {
     btn.addEventListener('click', () => {
       const sec = btn.dataset.sec
-      document.querySelectorAll('.ds').forEach(s => s.classList.remove('active'))
-      document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'))
-      document.getElementById('sec-' + sec).classList.add('active')
-      btn.classList.add('active')
+      navigateTo(sec)
 
-      // close sidebar on mobile after clicking a nav item
       if (window.innerWidth <= 768) {
         document.querySelector('.dsb').classList.remove('open')
         document.getElementById('sidebar-overlay').classList.remove('visible')
@@ -138,10 +154,10 @@ function setupHandlers() {
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabase.auth.signOut()
+    window.location.hash = ''
     import('./home.js').then(m => m.renderApp())
   })
 
-  // toggle button
   document.getElementById('sidebar-toggle').addEventListener('click', () => {
     const sidebar = document.querySelector('.dsb')
     const overlay = document.getElementById('sidebar-overlay')
@@ -149,9 +165,26 @@ function setupHandlers() {
     overlay.classList.toggle('visible')
   })
 
-  // close sidebar when clicking overlay
   document.getElementById('sidebar-overlay').addEventListener('click', () => {
     document.querySelector('.dsb').classList.remove('open')
     document.getElementById('sidebar-overlay').classList.remove('visible')
   })
+
+  window.addEventListener('hashchange', () => {
+    const sec = window.location.hash.replace('#', '') || 'dashboard'
+    activateSection(sec)
+  })
+
+  const initialSec = window.location.hash.replace('#', '') || 'dashboard'
+  activateSection(initialSec)
+}
+
+function setupPathCards() {
+  const activeCard = document.querySelector('.active-pc')
+  if (activeCard) {
+    activeCard.style.cursor = 'pointer'
+    activeCard.addEventListener('click', () => {
+      navigateTo('lessons')
+    })
+  }
 }
