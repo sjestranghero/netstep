@@ -19,7 +19,7 @@ export function renderApp() {
       <section class="hero">
         <div class="hero-inner">
           <div class="hero-left">
-            <div class="hero-tag">🇵🇭 Made for Filipino networking students</div>
+            <div class="hero-tag">🇵🇭 A gift for networking students</div>
             <h1>Master Networking. <em>Step by Step.</em></h1>
             <p>A guided platform for CCNA and cybersecurity prep — with gamified quizzes, a CLI lab simulator, and teacher-verified content. All free.</p>
             <div class="hero-btns">
@@ -80,7 +80,7 @@ export function renderApp() {
 
       <footer class="foot">
         <div class="foot-logo">NetStep</div>
-        <div class="foot-txt">Made with 💛 for Filipino students · Free forever</div>
+        <div class="foot-txt"> sj-estranghero 💛 · Free forever</div>
       </footer>
 
     </div>
