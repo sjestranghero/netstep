@@ -18,8 +18,10 @@ export async function renderDashboard() {
 
   const name = user.user_metadata?.full_name || user.email.split('@')[0]
 
-  app.innerHTML = `
+app.innerHTML = `
     <div class="dw">
+      <button class="toggle-btn" id="sidebar-toggle">☰</button>
+      <div class="overlay" id="sidebar-overlay"></div>
 
       <aside class="dsb">
         <div class="dsb-logo">NetStep <span class="logo-pill">BETA</span></div>
@@ -125,6 +127,12 @@ function setupHandlers() {
       document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'))
       document.getElementById('sec-' + sec).classList.add('active')
       btn.classList.add('active')
+
+      // close sidebar on mobile after clicking a nav item
+      if (window.innerWidth <= 768) {
+        document.querySelector('.dsb').classList.remove('open')
+        document.getElementById('sidebar-overlay').classList.remove('visible')
+      }
     })
   })
 
@@ -132,17 +140,18 @@ function setupHandlers() {
     await supabase.auth.signOut()
     import('./home.js').then(m => m.renderApp())
   })
-}
 
-function setupPathCards() {
-  const activeCard = document.querySelector('.active-pc')
-  if (activeCard) {
-    activeCard.style.cursor = 'pointer'
-    activeCard.addEventListener('click', () => {
-      document.querySelectorAll('.ds').forEach(s => s.classList.remove('active'))
-      document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'))
-      document.getElementById('sec-lessons').classList.add('active')
-      document.querySelector('[data-sec="lessons"]').classList.add('active')
-    })
-  }
+  // toggle button
+  document.getElementById('sidebar-toggle').addEventListener('click', () => {
+    const sidebar = document.querySelector('.dsb')
+    const overlay = document.getElementById('sidebar-overlay')
+    sidebar.classList.toggle('open')
+    overlay.classList.toggle('visible')
+  })
+
+  // close sidebar when clicking overlay
+  document.getElementById('sidebar-overlay').addEventListener('click', () => {
+    document.querySelector('.dsb').classList.remove('open')
+    document.getElementById('sidebar-overlay').classList.remove('visible')
+  })
 }
