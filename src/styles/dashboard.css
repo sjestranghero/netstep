@@ -123,3 +123,77 @@
   color: var(--y);
   flex-shrink: 0;
 }
+@media (max-width: 768px) {
+  .dw { flex-direction: column; }
+
+  .dsb {
+    width: 100%;
+    min-width: unset;
+    flex-direction: row;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    border-top: 2px solid rgba(255,255,255,0.1);
+  }
+
+  .dsb-logo { display: none; }
+  .dsb-foot { display: none; }
+
+  .dsb-nav {
+    display: flex;
+    flex-direction: row;
+    padding: 6px 4px;
+    flex: 1;
+    gap: 2px;
+    overflow-x: auto;
+  }
+
+  .nav-label { display: none; }
+
+  .ni {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 9px;
+    min-width: 56px;
+    flex-shrink: 0;
+  }
+
+  .ni-ic { font-size: 18px; }
+  .ni-badge { display: none; }
+
+  .dm {
+    flex: 1;
+    padding-bottom: 80px;
+  }
+
+  .ds { padding: 18px 16px; }
+
+  .dtop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .stats-row { grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .sv { font-size: 20px; }
+
+  .path-list .pc {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .lab-body { grid-template-columns: 1fr; }
+  .lab-grid { grid-template-columns: 1fr; }
+
+  .tcpudp-wrap { grid-template-columns: 1fr; }
+  .subnet-info-row { grid-template-columns: repeat(2,1fr); }
+
+  .feat-grid { grid-template-columns: 1fr; }
+}
