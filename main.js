@@ -1,4 +1,16 @@
 import './src/styles/main.css'
-import { renderApp } from './src/pages/home.js'
+import { supabase } from './src/supabase.js'
 
-renderApp()
+async function init() {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    const { renderDashboard } = await import('./src/pages/dashboard.js')
+    renderDashboard()
+  } else {
+    const { renderApp } = await import('./src/pages/home.js')
+    renderApp()
+  }
+}
+
+init()
