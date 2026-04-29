@@ -6,6 +6,8 @@ import { labHTML, setupLab } from '../sections/lab.js'
 import { leaderboardHTML, setupLeaderboard } from '../sections/leaderboard.js'
 import { resourcesHTML } from '../sections/resources.js'
 import { lessonsHTML, setupLessons } from '../sections/lessons.js'
+import { subnetDojoHTML, setupSubnetDojo } from '../sections/subnetdojo.js'
+import { topoHTML, setupTopo } from '../sections/topology.js'
 
 export async function renderDashboard() {
   const app = document.getElementById('app')
@@ -33,6 +35,8 @@ export async function renderDashboard() {
           <button class="ni" data-sec="quiz"><span class="ni-ic">🎯</span> Quiz Mode <span class="ni-badge">New</span></button>
           <button class="ni" data-sec="lab"><span class="ni-ic">💻</span> CLI Lab</button>
           <div class="nav-label" style="margin-top:14px;">Community</div>
+          <button class="ni" data-sec="subnet"><span class="ni-ic">🧮</span> Subnet Dojo</button>
+          <button class="ni" data-sec="topology"><span class="ni-ic">🗺️</span> Net Topology</button>
           <button class="ni" data-sec="leaderboard"><span class="ni-ic">🏆</span> Leaderboard</button>
           <div class="nav-label" style="margin-top:14px;">More</div>
           <button class="ni" data-sec="resources"><span class="ni-ic">📚</span> Resources</button>
@@ -106,6 +110,8 @@ export async function renderDashboard() {
         <div id="sec-quiz" class="ds">${quizHTML()}</div>
         <div id="sec-lab" class="ds">${labHTML()}</div>
         <div id="sec-leaderboard" class="ds">${leaderboardHTML()}</div>
+        <div id="sec-subnet" class="ds">${subnetDojoHTML()}</div>
+        <div id="sec-topology" class="ds">${topoHTML()}</div>
         <div id="sec-resources" class="ds">${resourcesHTML()}</div>
 
       </main>
@@ -118,6 +124,8 @@ export async function renderDashboard() {
   setupLab()
   setupLeaderboard()
   setupPathCards()
+  setupSubnetDojo()
+  setupTopo()
 }
 
 function navigateTo(sec) {
@@ -126,7 +134,7 @@ function navigateTo(sec) {
 }
 
 function activateSection(sec) {
-  const validSections = ['dashboard', 'lessons', 'quiz', 'lab', 'leaderboard', 'resources']
+  const validSections = ['dashboard', 'lessons', 'quiz', 'lab', 'leaderboard', 'resources', 'subnet', 'topology']
   const target = validSections.includes(sec) ? sec : 'dashboard'
 
   document.querySelectorAll('.ds').forEach(s => s.classList.remove('active'))
