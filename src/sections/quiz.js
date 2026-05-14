@@ -1,3 +1,4 @@
+import { supabase } from '../supabase.js'
 import '../styles/quiz.css'
 
 const QUESTIONS = {
@@ -162,6 +163,7 @@ export function quizHTML() {
         <h2 class="res-title" id="res-title">Quiz Complete!</h2>
         <div class="res-score" id="res-score"></div>
         <div class="res-xp" id="res-xp"></div>
+        <div class="res-xp-status" id="res-xp-status" style="font-size:12px;color:#7d8590;margin-top:4px;"></div>
         <div class="res-breakdown" id="res-breakdown"></div>
         <button class="res-btn" id="res-retry">Try again</button>
         <button class="res-btn res-btn-outline" id="res-pick">Pick another topic</button>
@@ -249,6 +251,55 @@ export function setupQuiz() {
     document.getElementById('quiz-picker').style.display = 'block'
   })
 
+  // ─── SAVE XP TO SUPABASE ────────────────────────────────────────────────────
+  async function saveResultsToSupabase() {
+    const statusEl = document.getElementById('res-xp-status')
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        statusEl.textContent = '⚠️ Not logged in — XP not saved.'
+        return
+      }
+
+      // Fetch current profile values
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('xp, quizzes_done')
+        .eq('id', user.id)
+        .single()
+
+      if (fetchError) {
+        // Profile row might not exist yet — create it
+        await supabase.from('profiles').insert({
+          id: user.id,
+          xp: xp,
+          quizzes_done: 1
+        })
+        statusEl.textContent = '✅ XP saved!'
+        return
+      }
+
+      const newXp = (profile.xp || 0) + xp
+      const newQuizzes = (profile.quizzes_done || 0) + 1
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ xp: newXp, quizzes_done: newQuizzes })
+        .eq('id', user.id)
+
+      if (updateError) {
+        console.error('Supabase update error:', updateError)
+        statusEl.textContent = '⚠️ Could not save XP. Try again.'
+      } else {
+        statusEl.textContent = `✅ XP saved! Total XP: ${newXp}`
+      }
+    } catch (err) {
+      console.error('Failed to save XP:', err)
+      statusEl.textContent = '⚠️ Could not save XP.'
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
   function showResults() {
     document.getElementById('quiz-active').style.display = 'none'
     document.getElementById('quiz-results').style.display = 'block'
@@ -257,11 +308,15 @@ export function setupQuiz() {
     document.getElementById('res-title').textContent = pct >= 80 ? 'Excellent work!' : pct >= 50 ? 'Good effort!' : 'Keep studying!'
     document.getElementById('res-score').textContent = score + ' / ' + questions.length + ' correct (' + pct + '%)'
     document.getElementById('res-xp').textContent = '+' + xp + ' XP earned'
+    document.getElementById('res-xp-status').textContent = 'Saving...'
     document.getElementById('res-breakdown').textContent = pct >= 80 ? 'You clearly know this topic well. Try another one!' : pct >= 50 ? 'You are getting there. Review the ones you missed and try again.' : 'No worries — review the material and come back. You got this!'
     document.getElementById('res-retry').onclick = () => startQuiz(currentTopic)
     document.getElementById('res-pick').onclick = () => {
       document.getElementById('quiz-results').style.display = 'none'
       document.getElementById('quiz-picker').style.display = 'block'
     }
+
+    // Save XP and quiz count to Supabase
+    saveResultsToSupabase()
   }
 }
