@@ -36,7 +36,7 @@ export function topoHTML() {
       </div>
 
       <div class="topo-canvas-wrap" id="topo-canvas-wrap">
-        <canvas id="topo-canvas" width="860" height="420"></canvas>
+        <canvas id="topo-canvas"></canvas>
         <div class="topo-hint" id="topo-hint">Drag devices onto the canvas to get started</div>
       </div>
 
@@ -68,6 +68,31 @@ export function setupTopo() {
   if (!canvas) return
   const ctx = canvas.getContext('2d')
   const wrap = document.getElementById('topo-canvas-wrap')
+
+  // KEY FIX: sync canvas internal size to its displayed size
+  function resizeCanvas() {
+    const rect = wrap.getBoundingClientRect()
+    canvas.width = rect.width
+    canvas.height = rect.height
+    draw()
+  }
+
+  // Run after layout is ready
+  requestAnimationFrame(() => {
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
+  })
+
+  // KEY FIX: always get mouse position relative to canvas actual size
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    }
+  }
 
   const TASKS = [
     {
@@ -125,6 +150,7 @@ export function setupTopo() {
   let devices = [], connections = [], mode = 'move'
   let dragging = null, dragOffX = 0, dragOffY = 0
   let cableFrom = null, nextId = 1, currentTask = 0
+  let mouseX = 0, mouseY = 0
 
   const COLORS = { router: '#1C4B62', switch: '#27500A', pc: '#633806', server: '#3C3489' }
   const LABELS = { router: 'Router', switch: 'Switch', pc: 'PC', server: 'Server' }
@@ -139,6 +165,7 @@ export function setupTopo() {
     return devs.every(d => conns.some(c => c.a === d.id || c.b === d.id))
   }
 
+  // Drag from toolbar onto canvas
   document.querySelectorAll('.topo-device-btn').forEach(btn => {
     btn.addEventListener('dragstart', e => {
       e.dataTransfer.setData('type', btn.dataset.type)
@@ -150,9 +177,11 @@ export function setupTopo() {
     e.preventDefault()
     const type = e.dataTransfer.getData('type')
     if (!type) return
-    const rect = wrap.getBoundingClientRect()
-    const x = Math.max(30, Math.min(canvas.width - 30, e.clientX - rect.left))
-    const y = Math.max(30, Math.min(canvas.height - 30, e.clientY - rect.top))
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const x = Math.max(30, Math.min(canvas.width - 30, (e.clientX - rect.left) * scaleX))
+    const y = Math.max(30, Math.min(canvas.height - 30, (e.clientY - rect.top) * scaleY))
     const id = nextId++
     devices.push({ id, type, x, y, name: LABELS[type] + ' ' + id })
     document.getElementById('topo-hint').style.display = 'none'
@@ -160,7 +189,8 @@ export function setupTopo() {
   })
 
   function setMode(m) {
-    mode = m; cableFrom = null
+    mode = m
+    cableFrom = null
     document.getElementById('topo-move-btn').classList.toggle('active', m === 'move')
     document.getElementById('topo-cable-btn').classList.toggle('active', m === 'cable')
     document.getElementById('topo-delete-btn').classList.toggle('active', m === 'delete')
@@ -218,27 +248,30 @@ export function setupTopo() {
       const a = devices.find(d => d.id === c.a)
       const b = devices.find(d => d.id === c.b)
       if (!a || !b) return false
-      const dist = pointToSegment(x, y, a.x, a.y, b.x, b.y)
-      return dist < 8
+      return pointToSegment(x, y, a.x, a.y, b.x, b.y) < 8
     })
   }
 
   function pointToSegment(px, py, ax, ay, bx, by) {
     const dx = bx - ax, dy = by - ay
-    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    const len2 = dx * dx + dy * dy
+    if (len2 === 0) return Math.hypot(px - ax, py - ay)
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2))
     return Math.hypot(px - (ax + t * dx), py - (ay + t * dy))
   }
 
-  let mouseX = 0, mouseY = 0
   canvas.addEventListener('mousemove', e => {
-    const rect = wrap.getBoundingClientRect()
-    mouseX = e.clientX - rect.left
-    mouseY = e.clientY - rect.top
+    const pos = getPos(e)
+    mouseX = pos.x
+    mouseY = pos.y
+
     if (dragging) {
       dragging.x = Math.max(28, Math.min(canvas.width - 28, mouseX - dragOffX))
       dragging.y = Math.max(28, Math.min(canvas.height - 28, mouseY - dragOffY))
     }
     draw()
+
+    // Draw live cable preview
     if (mode === 'cable' && cableFrom) {
       ctx.beginPath()
       ctx.moveTo(cableFrom.x, cableFrom.y)
@@ -252,21 +285,34 @@ export function setupTopo() {
   })
 
   canvas.addEventListener('mousedown', e => {
-    const rect = wrap.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const pos = getPos(e)
+    const x = pos.x, y = pos.y
     const hit = getDeviceAt(x, y)
+
     if (mode === 'move') {
-      if (hit) { dragging = hit; dragOffX = x - hit.x; dragOffY = y - hit.y; canvas.style.cursor = 'grabbing' }
+      if (hit) {
+        dragging = hit
+        dragOffX = x - hit.x
+        dragOffY = y - hit.y
+        canvas.style.cursor = 'grabbing'
+      }
     } else if (mode === 'cable') {
       if (hit) {
-        if (!cableFrom) { cableFrom = hit }
-        else if (cableFrom.id !== hit.id) {
-          const exists = connections.find(c => (c.a === cableFrom.id && c.b === hit.id) || (c.a === hit.id && c.b === cableFrom.id))
+        if (!cableFrom) {
+          cableFrom = hit
+        } else if (cableFrom.id !== hit.id) {
+          const exists = connections.find(c =>
+            (c.a === cableFrom.id && c.b === hit.id) ||
+            (c.a === hit.id && c.b === cableFrom.id)
+          )
           if (!exists) connections.push({ a: cableFrom.id, b: hit.id })
-          cableFrom = null; draw()
+          cableFrom = null
+          draw()
         }
-      } else { cableFrom = null; draw() }
+      } else {
+        cableFrom = null
+        draw()
+      }
     } else if (mode === 'delete') {
       if (hit) {
         devices = devices.filter(d => d.id !== hit.id)
@@ -279,25 +325,42 @@ export function setupTopo() {
     }
   })
 
-  canvas.addEventListener('mouseup', () => { dragging = null; canvas.style.cursor = 'default' })
+  canvas.addEventListener('mouseup', () => {
+    dragging = null
+    canvas.style.cursor = 'default'
+  })
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw connections
     connections.forEach(c => {
       const a = devices.find(d => d.id === c.a)
       const b = devices.find(d => d.id === c.b)
       if (!a || !b) return
-      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y)
-      ctx.strokeStyle = '#B4B2A9'; ctx.lineWidth = 2; ctx.setLineDash([]); ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(a.x, a.y)
+      ctx.lineTo(b.x, b.y)
+      ctx.strokeStyle = '#B4B2A9'
+      ctx.lineWidth = 2
+      ctx.setLineDash([])
+      ctx.stroke()
     })
+
+    // Draw devices
     devices.forEach(d => {
       const isSelected = cableFrom && cableFrom.id === d.id
-      ctx.beginPath(); ctx.arc(d.x, d.y, 22, 0, Math.PI * 2)
+      ctx.beginPath()
+      ctx.arc(d.x, d.y, 22, 0, Math.PI * 2)
       ctx.fillStyle = isSelected ? COLORS[d.type] : '#fff'
       ctx.fill()
-      ctx.strokeStyle = COLORS[d.type]; ctx.lineWidth = isSelected ? 3 : 2; ctx.stroke()
+      ctx.strokeStyle = COLORS[d.type]
+      ctx.lineWidth = isSelected ? 3 : 2
+      ctx.stroke()
       drawIcon(d.type, d.x, d.y, isSelected ? '#fff' : COLORS[d.type])
-      ctx.fillStyle = '#444'; ctx.font = '500 11px system-ui'; ctx.textAlign = 'center'
+      ctx.fillStyle = '#444'
+      ctx.font = '500 11px system-ui'
+      ctx.textAlign = 'center'
       ctx.fillText(d.name, d.x, d.y + 36)
     })
   }
@@ -315,8 +378,11 @@ export function setupTopo() {
       ;[-4,0,4].forEach(ox => { ctx.beginPath(); ctx.arc(x+ox,y,1.5,0,Math.PI*2); ctx.fill() })
     } else if (type === 'pc') {
       ctx.strokeRect(x-8,y-7,16,10)
-      ctx.beginPath(); ctx.moveTo(x-4,y+3); ctx.lineTo(x-5,y+7); ctx.moveTo(x+4,y+3); ctx.lineTo(x+5,y+7)
-      ctx.moveTo(x-6,y+7); ctx.lineTo(x+6,y+7); ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(x-4,y+3); ctx.lineTo(x-5,y+7)
+      ctx.moveTo(x+4,y+3); ctx.lineTo(x+5,y+7)
+      ctx.moveTo(x-6,y+7); ctx.lineTo(x+6,y+7)
+      ctx.stroke()
     } else if (type === 'server') {
       ctx.strokeRect(x-8,y-7,16,5); ctx.strokeRect(x-8,y,16,5)
       ctx.beginPath(); ctx.arc(x+5,y-4.5,1.5,0,Math.PI*2); ctx.fill()
