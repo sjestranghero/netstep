@@ -88,70 +88,166 @@ export async function renderDashboard() {
 
       <main class="dm">
 
-        <div id="sec-dashboard" class="ds">
+<div id="sec-dashboard" class="ds">
+
+          <!-- TOP BAR -->
           <div class="dtop">
             <div>
               <h1 class="dtitle">Welcome back, ${name} 👋</h1>
-              <p class="dsub">Continue your CCNA prep journey</p>
+              <p class="dsub">Continue your CCNA prep journey — you're doing great!</p>
             </div>
             <div class="streak-chip">🔥 Start your streak!</div>
           </div>
+
+          <!-- STAT CARDS -->
           <div class="stats-row">
             <div class="scard"><div class="sv" id="stat-lessons">—</div><div class="sl">Lessons done</div></div>
             <div class="scard"><div class="sv" id="stat-quiz-avg">—</div><div class="sl">Quiz avg score</div></div>
             <div class="scard"><div class="sv" id="stat-xp">—</div><div class="sl">Total XP</div></div>
           </div>
-          <div class="sec-lbl">Your Learning Path</div>
-          <div class="path-list">
-            <div class="pc active-pc">
-              <div class="pc-icon" style="background:#FFF3D6;">📡</div>
-              <div class="pc-info">
-                <div class="pc-title">1. Network Fundamentals</div>
-                <div class="pc-meta">OSI model, IP addressing, subnetting</div>
-                <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--y);"></div></div><span class="prog-pct">0%</span></div>
+
+          <!-- MOTIVATIONAL BANNER -->
+          <div class="mot-banner">
+            <div class="mot-left">
+              <div class="mot-emoji">💡</div>
+              <div>
+                <div class="mot-title">Did you know?</div>
+                <div class="mot-text" id="mot-text">Loading tip...</div>
               </div>
-              <span class="pc-tag" style="background:rgba(232,165,25,0.12);color:var(--y);">Start →</span>
             </div>
-            <div class="pc locked-pc">
-              <div class="pc-icon" style="background:#F0F4F7;">🔒</div>
-              <div class="pc-info">
-                <div class="pc-title">2. Switching &amp; VLANs</div>
-                <div class="pc-meta">STP, VLAN config, trunking, EtherChannel</div>
-                <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--mut);"></div></div><span class="prog-pct">0%</span></div>
-              </div>
-              <span class="pc-tag" style="background:#F0F4F7;color:var(--mut);">Locked</span>
-            </div>
-            <div class="pc locked-pc">
-              <div class="pc-icon" style="background:#F0F4F7;">🔒</div>
-              <div class="pc-info">
-                <div class="pc-title">3. Routing Protocols</div>
-                <div class="pc-meta">OSPF, EIGRP, BGP basics, static routes</div>
-                <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--mut);"></div></div><span class="prog-pct">0%</span></div>
-              </div>
-              <span class="pc-tag" style="background:#F0F4F7;color:var(--mut);">Locked</span>
-            </div>
-            <div class="pc locked-pc">
-              <div class="pc-icon" style="background:#F0F4F7;">🔒</div>
-              <div class="pc-info">
-                <div class="pc-title">4. Network Security</div>
-                <div class="pc-meta">ACLs, firewalls, VPNs, threat basics</div>
-                <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--mut);"></div></div><span class="prog-pct">0%</span></div>
-              </div>
-              <span class="pc-tag" style="background:#F0F4F7;color:var(--mut);">Locked</span>
-            </div>
+            <button class="mot-next" id="mot-next">Next tip →</button>
           </div>
-        </div>
 
-        <div id="sec-lessons" class="ds">${lessonsHTML()}</div>
-        <div id="sec-quiz" class="ds">${quizHTML()}</div>
-        <div id="sec-lab" class="ds">${labHTML()}</div>
-        <div id="sec-leaderboard" class="ds">${leaderboardHTML()}</div>
-        <div id="sec-subnet" class="ds">${subnetDojoHTML()}</div>
-        <div id="sec-topology" class="ds">${topoHTML()}</div>
-        <div id="sec-resources" class="ds">${resourcesHTML()}</div>
+          <!-- TWO COLUMN LAYOUT -->
+          <div class="dash-cols">
 
-      </main>
-    </div>
+            <!-- LEFT: LEARNING PATH -->
+            <div class="dash-col-main">
+              <div class="sec-lbl">Your Learning Path</div>
+              <div class="path-list">
+                <div class="pc active-pc">
+                  <div class="pc-icon" style="background:#FFF3D6;">📡</div>
+                  <div class="pc-info">
+                    <div class="pc-title">1. Network Fundamentals</div>
+                    <div class="pc-meta">OSI model, IP addressing, subnetting</div>
+                    <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--y);"></div></div><span class="prog-pct">0%</span></div>
+                  </div>
+                  <span class="pc-tag" style="background:rgba(232,165,25,0.12);color:var(--y);">Start →</span>
+                </div>
+                <div class="pc locked-pc">
+                  <div class="pc-icon" style="background:#F0F4F7;">🔒</div>
+                  <div class="pc-info">
+                    <div class="pc-title">2. Switching &amp; VLANs</div>
+                    <div class="pc-meta">STP, VLAN config, trunking, EtherChannel</div>
+                    <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--mut);"></div></div><span class="prog-pct">0%</span></div>
+                  </div>
+                  <span class="pc-tag" style="background:#F0F4F7;color:var(--mut);">Locked</span>
+                </div>
+                <div class="pc locked-pc">
+                  <div class="pc-icon" style="background:#F0F4F7;">🔒</div>
+                  <div class="pc-info">
+                    <div class="pc-title">3. Routing Protocols</div>
+                    <div class="pc-meta">OSPF, EIGRP, BGP basics, static routes</div>
+                    <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--mut);"></div></div><span class="prog-pct">0%</span></div>
+                  </div>
+                  <span class="pc-tag" style="background:#F0F4F7;color:var(--mut);">Locked</span>
+                </div>
+                <div class="pc locked-pc">
+                  <div class="pc-icon" style="background:#F0F4F7;">🔒</div>
+                  <div class="pc-info">
+                    <div class="pc-title">4. Network Security</div>
+                    <div class="pc-meta">ACLs, firewalls, VPNs, threat basics</div>
+                    <div class="pc-prog"><div class="prog-track"><div class="prog-fill" style="width:0%;background:var(--mut);"></div></div><span class="prog-pct">0%</span></div>
+                  </div>
+                  <span class="pc-tag" style="background:#F0F4F7;color:var(--mut);">Locked</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT: CERTIFICATION OVERVIEW -->
+            <div class="dash-col-side">
+              <div class="sec-lbl">Certification Roadmap</div>
+              <div class="cert-list">
+                <div class="cert-card cert-active">
+                  <div class="cert-top">
+                    <div class="cert-badge" style="background:#FFF3D6;color:#9a6e00;">CCNA</div>
+                    <span class="cert-status-tag">You are here</span>
+                  </div>
+                  <div class="cert-name">Cisco Certified Network Associate</div>
+                  <div class="cert-desc">Entry-level networking. Covers IP, routing, switching, security basics. Best first cert for any networking career.</div>
+                  <div class="cert-meta">
+                    <span>📅 ~3–6 months prep</span>
+                    <span>📝 120 min · 100 questions</span>
+                  </div>
+                </div>
+
+                <div class="cert-card">
+                  <div class="cert-top">
+                    <div class="cert-badge" style="background:#E3EDF2;color:#1C4B62;">CCNP</div>
+                    <span class="cert-status-tag locked-tag">After CCNA</span>
+                  </div>
+                  <div class="cert-name">Cisco Certified Network Professional</div>
+                  <div class="cert-desc">Advanced routing, switching, troubleshooting. Specializations in Enterprise, Security, or Data Center.</div>
+                  <div class="cert-meta">
+                    <span>📅 ~6–12 months prep</span>
+                    <span>📝 Two exams required</span>
+                  </div>
+                </div>
+
+                <div class="cert-card">
+                  <div class="cert-top">
+                    <div class="cert-badge" style="background:#FDECEA;color:#7a1c10;">Sec+</div>
+                    <span class="cert-status-tag locked-tag">Cybersecurity path</span>
+                  </div>
+                  <div class="cert-name">CompTIA Security+</div>
+                  <div class="cert-desc">Top cybersecurity entry cert. Covers threats, cryptography, identity, and network defense. DoD approved.</div>
+                  <div class="cert-meta">
+                    <span>📅 ~2–4 months prep</span>
+                    <span>📝 90 min · 90 questions</span>
+                  </div>
+                </div>
+
+                <div class="cert-card">
+                  <div class="cert-top">
+                    <div class="cert-badge" style="background:#EDE7F6;color:#3C3489;">CEH</div>
+                    <span class="cert-status-tag locked-tag">Advanced security</span>
+                  </div>
+                  <div class="cert-name">Certified Ethical Hacker</div>
+                  <div class="cert-desc">Offensive security mindset. Learn how attackers think to defend better. High demand in PH government and BPOs.</div>
+                  <div class="cert-meta">
+                    <span>📅 ~3–6 months prep</span>
+                    <span>📝 125 questions · 4 hrs</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- QUICK ACTION ROW -->
+          <div class="sec-lbl" style="margin-top:28px;">Quick actions</div>
+          <div class="quick-row">
+            <button class="quick-card" onclick="document.querySelector('[data-sec=quiz]').click()">
+              <i class="ti ti-target" aria-hidden="true"></i>
+              <div class="quick-name">Take a quiz</div>
+              <div class="quick-sub">Test your knowledge · Earn XP</div>
+            </button>
+            <button class="quick-card" onclick="document.querySelector('[data-sec=lab]').click()">
+              <i class="ti ti-terminal-2" aria-hidden="true"></i>
+              <div class="quick-name">CLI Lab</div>
+              <div class="quick-sub">Practice Cisco commands</div>
+            </button>
+            <button class="quick-card" onclick="document.querySelector('[data-sec=subnet]').click()">
+              <i class="ti ti-calculator" aria-hidden="true"></i>
+              <div class="quick-name">Subnet Dojo</div>
+              <div class="quick-sub">Drill subnetting fast</div>
+            </button>
+            <button class="quick-card" onclick="document.querySelector('[data-sec=topology]').click()">
+              <i class="ti ti-topology-star" aria-hidden="true"></i>
+              <div class="quick-name">Net Topology</div>
+              <div class="quick-sub">Build network diagrams</div>
+            </button>
+          </div>
   `
 
   setupHandlers()
@@ -163,6 +259,7 @@ export async function renderDashboard() {
   setupSubnetDojo()
   setupTopo()
   loadUserStats(user.id)
+  setupMotivation()
 }
 
 async function loadUserStats(userId) {
@@ -269,4 +366,30 @@ function setupPathCards() {
     activeCard.style.cursor = 'pointer'
     activeCard.addEventListener('click', () => navigateTo('lessons'))
   }
+}
+
+function setupMotivation() {
+  const tips = [
+    'The CCNA 200-301 exam covers 6 domains — Network Fundamentals is worth 20% of your score. Master it first!',
+    'Subnetting is the most tested skill on CCNA. Practice daily for 10 minutes and it becomes second nature.',
+    'The average CCNA salary in the Philippines is ₱35,000–₱60,000/month. Certified engineers earn 40% more.',
+    'You don\'t need to memorize everything. Understanding the OSI model deeply unlocks every other topic.',
+    'Cisco Packet Tracer is free and lets you practice real configurations without buying hardware.',
+    'The CCNA exam is 120 minutes, 100 questions. That\'s 72 seconds per question — practice speed too.',
+    'Consistency beats intensity. 30 minutes of study every day beats 5 hours once a week.',
+    'OSPF, EIGRP, and BGP are all on the exam — but OSPF is the most commonly tested routing protocol.',
+    'ACLs are tricky because of wildcard masks. Think of wildcards as the inverse of subnet masks.',
+    'After CCNA, CCNP Enterprise or CompTIA Security+ are the two most in-demand paths in PH tech.',
+    'CLI Lab practice is the fastest way to pass — Cisco exams now include simulation questions.',
+    'Every question you get wrong is telling you exactly what to study next. Wrong answers are progress.',
+  ]
+  let idx = Math.floor(Math.random() * tips.length)
+  const textEl = document.getElementById('mot-text')
+  const nextBtn = document.getElementById('mot-next')
+  if (!textEl || !nextBtn) return
+  textEl.textContent = tips[idx]
+  nextBtn.addEventListener('click', () => {
+    idx = (idx + 1) % tips.length
+    textEl.textContent = tips[idx]
+  })
 }
