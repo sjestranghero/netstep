@@ -23,24 +23,55 @@ export async function renderDashboard() {
 
   app.innerHTML = `
     <div class="dw">
-      <button class="toggle-btn" id="sidebar-toggle">☰</button>
+      <button class="toggle-btn" id="sidebar-toggle"><i class="ti ti-menu-2"></i></button>
       <div class="overlay" id="sidebar-overlay"></div>
 
       <aside class="dsb">
-        <div class="dsb-logo">NetStep <span class="logo-pill">BETA</span></div>
+        <div class="dsb-logo">
+          <div class="dsb-logo-mark">
+            <div class="dsb-logo-sq">N</div>
+            <div>
+              <span class="dsb-logo-name">NetStep</span>
+              <span class="dsb-logo-pill">BETA</span>
+            </div>
+          </div>
+        </div>
+
         <nav class="dsb-nav">
           <div class="nav-label">Learn</div>
-          <button class="ni" data-sec="dashboard"><span class="ni-ic">⊞</span> Dashboard</button>
-          <button class="ni" data-sec="lessons"><span class="ni-ic">📖</span> Lessons</button>
-          <button class="ni" data-sec="quiz"><span class="ni-ic">🎯</span> Quiz Mode <span class="ni-badge">New</span></button>
-          <button class="ni" data-sec="lab"><span class="ni-ic">💻</span> CLI Lab</button>
+          <button class="ni" data-sec="dashboard">
+            <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
+          </button>
+          <button class="ni" data-sec="lessons">
+            <i class="ti ti-book-2" aria-hidden="true"></i> Lessons
+          </button>
+          <button class="ni" data-sec="quiz">
+            <i class="ti ti-target" aria-hidden="true"></i> Quiz Mode
+            <span class="ni-badge">New</span>
+          </button>
+          <button class="ni" data-sec="lab">
+            <i class="ti ti-terminal-2" aria-hidden="true"></i> CLI Lab
+          </button>
+
+          <div class="nav-label" style="margin-top:14px;">Tools</div>
+          <button class="ni" data-sec="subnet">
+            <i class="ti ti-calculator" aria-hidden="true"></i> Subnet Dojo
+          </button>
+          <button class="ni" data-sec="topology">
+            <i class="ti ti-topology-star" aria-hidden="true"></i> Net Topology
+          </button>
+
           <div class="nav-label" style="margin-top:14px;">Community</div>
-          <button class="ni" data-sec="subnet"><span class="ni-ic">🧮</span> Subnet Dojo</button>
-          <button class="ni" data-sec="topology"><span class="ni-ic">🗺️</span> Net Topology</button>
-          <button class="ni" data-sec="leaderboard"><span class="ni-ic">🏆</span> Leaderboard</button>
+          <button class="ni" data-sec="leaderboard">
+            <i class="ti ti-trophy" aria-hidden="true"></i> Leaderboard
+          </button>
+
           <div class="nav-label" style="margin-top:14px;">More</div>
-          <button class="ni" data-sec="resources"><span class="ni-ic">📚</span> Resources</button>
+          <button class="ni" data-sec="resources">
+            <i class="ti ti-books" aria-hidden="true"></i> Resources
+          </button>
         </nav>
+
         <div class="dsb-foot">
           <div class="xp-wrap">
             <div class="xp-row">
@@ -49,7 +80,9 @@ export async function renderDashboard() {
             </div>
             <div class="xp-track"><div class="xp-bar" id="sb-xp-bar" style="width:0%"></div></div>
           </div>
-          <button class="logout-btn" id="logout-btn">← Log out</button>
+          <button class="logout-btn" id="logout-btn">
+            <i class="ti ti-logout" aria-hidden="true"></i> Log out
+          </button>
         </div>
       </aside>
 
@@ -129,8 +162,6 @@ export async function renderDashboard() {
   setupPathCards()
   setupSubnetDojo()
   setupTopo()
-
-  // ─── LOAD STATS FROM SUPABASE ──────────────────────────────────────────────
   loadUserStats(user.id)
 }
 
@@ -148,21 +179,17 @@ async function loadUserStats(userId) {
     const quizzesDone = profile.quizzes_done || 0
     const lessonsDone = profile.lessons_done || 0
 
-    // ── Stat cards ────────────────────────────────────────────────────────────
     const statLessons = document.getElementById('stat-lessons')
     const statQuizAvg = document.getElementById('stat-quiz-avg')
     const statXp = document.getElementById('stat-xp')
     if (statLessons) statLessons.textContent = lessonsDone
     if (statXp) statXp.textContent = xp
-
-    // Quiz avg: only show if they've done at least one quiz
     if (statQuizAvg) {
       statQuizAvg.textContent = quizzesDone > 0
         ? Math.round((xp / (quizzesDone * 200)) * 100) + '%'
         : '—'
     }
 
-    // ── Sidebar XP bar ────────────────────────────────────────────────────────
     const level = getLevelInfo(xp)
     const sbLevelLabel = document.getElementById('sb-level-label')
     const sbXpLabel = document.getElementById('sb-xp-label')
@@ -177,12 +204,12 @@ async function loadUserStats(userId) {
 }
 
 function getLevelInfo(xp) {
-  if (xp < 100)  return { num: 1, name: 'Newcomer',    next: 100  }
-  if (xp < 300)  return { num: 2, name: 'Apprentice',  next: 300  }
-  if (xp < 600)  return { num: 3, name: 'Technician',  next: 600  }
-  if (xp < 1000) return { num: 4, name: 'Engineer',    next: 1000 }
-  if (xp < 1500) return { num: 5, name: 'Specialist',  next: 1500 }
-  return           { num: 6, name: 'Expert',      next: 2000 }
+  if (xp < 100)  return { num: 1, name: 'Newcomer',   next: 100  }
+  if (xp < 300)  return { num: 2, name: 'Apprentice', next: 300  }
+  if (xp < 600)  return { num: 3, name: 'Technician', next: 600  }
+  if (xp < 1000) return { num: 4, name: 'Engineer',   next: 1000 }
+  if (xp < 1500) return { num: 5, name: 'Specialist', next: 1500 }
+  return           { num: 6, name: 'Expert',     next: 2000 }
 }
 
 function navigateTo(sec) {
@@ -191,15 +218,12 @@ function navigateTo(sec) {
 }
 
 function activateSection(sec) {
-  const validSections = ['dashboard', 'lessons', 'quiz', 'lab', 'leaderboard', 'resources', 'subnet', 'topology']
+  const validSections = ['dashboard','lessons','quiz','lab','leaderboard','resources','subnet','topology']
   const target = validSections.includes(sec) ? sec : 'dashboard'
-
   document.querySelectorAll('.ds').forEach(s => s.classList.remove('active'))
   document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'))
-
   const secEl = document.getElementById('sec-' + target)
   const navEl = document.querySelector(`[data-sec="${target}"]`)
-
   if (secEl) secEl.classList.add('active')
   if (navEl) navEl.classList.add('active')
 }
@@ -207,9 +231,7 @@ function activateSection(sec) {
 function setupHandlers() {
   document.querySelectorAll('.ni').forEach(btn => {
     btn.addEventListener('click', () => {
-      const sec = btn.dataset.sec
-      navigateTo(sec)
-
+      navigateTo(btn.dataset.sec)
       if (window.innerWidth <= 768) {
         document.querySelector('.dsb').classList.remove('open')
         document.getElementById('sidebar-overlay').classList.remove('visible')
@@ -224,10 +246,8 @@ function setupHandlers() {
   })
 
   document.getElementById('sidebar-toggle').addEventListener('click', () => {
-    const sidebar = document.querySelector('.dsb')
-    const overlay = document.getElementById('sidebar-overlay')
-    sidebar.classList.toggle('open')
-    overlay.classList.toggle('visible')
+    document.querySelector('.dsb').classList.toggle('open')
+    document.getElementById('sidebar-overlay').classList.toggle('visible')
   })
 
   document.getElementById('sidebar-overlay').addEventListener('click', () => {
@@ -240,16 +260,13 @@ function setupHandlers() {
     activateSection(sec)
   })
 
-  const initialSec = window.location.hash.replace('#', '') || 'dashboard'
-  activateSection(initialSec)
+  activateSection(window.location.hash.replace('#', '') || 'dashboard')
 }
 
 function setupPathCards() {
   const activeCard = document.querySelector('.active-pc')
   if (activeCard) {
     activeCard.style.cursor = 'pointer'
-    activeCard.addEventListener('click', () => {
-      navigateTo('lessons')
-    })
+    activeCard.addEventListener('click', () => navigateTo('lessons'))
   }
 }
