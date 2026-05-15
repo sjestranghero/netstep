@@ -43,8 +43,11 @@ export async function renderDashboard() {
         </nav>
         <div class="dsb-foot">
           <div class="xp-wrap">
-            <div class="xp-row"><span>Level 1 · Newcomer</span><span>0 / 100 XP</span></div>
-            <div class="xp-track"><div class="xp-bar" style="width:0%"></div></div>
+            <div class="xp-row">
+              <span id="sb-level-label">Level 1 · Newcomer</span>
+              <span id="sb-xp-label">0 / 100 XP</span>
+            </div>
+            <div class="xp-track"><div class="xp-bar" id="sb-xp-bar" style="width:0%"></div></div>
           </div>
           <button class="logout-btn" id="logout-btn">← Log out</button>
         </div>
@@ -61,9 +64,9 @@ export async function renderDashboard() {
             <div class="streak-chip">🔥 Start your streak!</div>
           </div>
           <div class="stats-row">
-            <div class="scard"><div class="sv">0</div><div class="sl">Lessons done</div></div>
-            <div class="scard"><div class="sv">—</div><div class="sl">Quiz avg score</div></div>
-            <div class="scard"><div class="sv">0</div><div class="sl">Total XP</div></div>
+            <div class="scard"><div class="sv" id="stat-lessons">—</div><div class="sl">Lessons done</div></div>
+            <div class="scard"><div class="sv" id="stat-quiz-avg">—</div><div class="sl">Quiz avg score</div></div>
+            <div class="scard"><div class="sv" id="stat-xp">—</div><div class="sl">Total XP</div></div>
           </div>
           <div class="sec-lbl">Your Learning Path</div>
           <div class="path-list">
@@ -126,6 +129,60 @@ export async function renderDashboard() {
   setupPathCards()
   setupSubnetDojo()
   setupTopo()
+
+  // ─── LOAD STATS FROM SUPABASE ──────────────────────────────────────────────
+  loadUserStats(user.id)
+}
+
+async function loadUserStats(userId) {
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('xp, quizzes_done, lessons_done')
+      .eq('id', userId)
+      .single()
+
+    if (error || !profile) return
+
+    const xp = profile.xp || 0
+    const quizzesDone = profile.quizzes_done || 0
+    const lessonsDone = profile.lessons_done || 0
+
+    // ── Stat cards ────────────────────────────────────────────────────────────
+    const statLessons = document.getElementById('stat-lessons')
+    const statQuizAvg = document.getElementById('stat-quiz-avg')
+    const statXp = document.getElementById('stat-xp')
+    if (statLessons) statLessons.textContent = lessonsDone
+    if (statXp) statXp.textContent = xp
+
+    // Quiz avg: only show if they've done at least one quiz
+    if (statQuizAvg) {
+      statQuizAvg.textContent = quizzesDone > 0
+        ? Math.round((xp / (quizzesDone * 200)) * 100) + '%'
+        : '—'
+    }
+
+    // ── Sidebar XP bar ────────────────────────────────────────────────────────
+    const level = getLevelInfo(xp)
+    const sbLevelLabel = document.getElementById('sb-level-label')
+    const sbXpLabel = document.getElementById('sb-xp-label')
+    const sbXpBar = document.getElementById('sb-xp-bar')
+    if (sbLevelLabel) sbLevelLabel.textContent = `Level ${level.num} · ${level.name}`
+    if (sbXpLabel) sbXpLabel.textContent = `${xp} / ${level.next} XP`
+    if (sbXpBar) sbXpBar.style.width = Math.min(100, Math.round((xp / level.next) * 100)) + '%'
+
+  } catch (err) {
+    console.error('Failed to load user stats:', err)
+  }
+}
+
+function getLevelInfo(xp) {
+  if (xp < 100)  return { num: 1, name: 'Newcomer',    next: 100  }
+  if (xp < 300)  return { num: 2, name: 'Apprentice',  next: 300  }
+  if (xp < 600)  return { num: 3, name: 'Technician',  next: 600  }
+  if (xp < 1000) return { num: 4, name: 'Engineer',    next: 1000 }
+  if (xp < 1500) return { num: 5, name: 'Specialist',  next: 1500 }
+  return           { num: 6, name: 'Expert',      next: 2000 }
 }
 
 function navigateTo(sec) {
