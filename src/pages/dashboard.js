@@ -8,6 +8,7 @@ import { resourcesHTML } from '../sections/resources.js'
 import { lessonsHTML, setupLessons } from '../sections/lessons.js'
 import { subnetDojoHTML, setupSubnetDojo } from '../sections/subnetdojo.js'
 import { topoHTML, setupTopo } from '../sections/topology.js'
+import { certguideHTML, setupCertguide } from '../sections/certguide.js'
 
 export async function renderDashboard() {
   const app = document.getElementById('app')
@@ -52,6 +53,7 @@ export async function renderDashboard() {
           <button class="ni" data-sec="leaderboard"><i class="ti ti-trophy"></i> Leaderboard</button>
 
           <div class="nav-label" style="margin-top:12px;">More</div>
+          <button class="ni" data-sec="certguide"><i class="ti ti-certificate"></i> Cert Guide <span class="ni-badge">New</span></button>
           <button class="ni" data-sec="resources"><i class="ti ti-books"></i> Resources</button>
         </nav>
 
@@ -181,6 +183,11 @@ export async function renderDashboard() {
                   <div class="quick-name">Net Topology</div>
                   <div class="quick-sub">Build network diagrams</div>
                 </button>
+                <button class="quick-card" id="qa-certguide">
+                  <i class="ti ti-certificate"></i>
+                  <div class="quick-name">Cert Guide</div>
+                  <div class="quick-sub">How to get certified</div>
+                </button>
               </div>
             </div>
 
@@ -235,6 +242,7 @@ export async function renderDashboard() {
         <div id="sec-leaderboard" class="ds">${leaderboardHTML()}</div>
         <div id="sec-subnet" class="ds">${subnetDojoHTML()}</div>
         <div id="sec-topology" class="ds">${topoHTML()}</div>
+        <div id="sec-certguide" class="ds">${certguideHTML()}</div>
         <div id="sec-resources" class="ds">${resourcesHTML()}</div>
 
       </main>
@@ -248,6 +256,7 @@ export async function renderDashboard() {
   setupLeaderboard()
   setupSubnetDojo()
   setupTopo()
+  setupCertguide()
   setupMotivation()
   loadUserStats(user.id)
 }
@@ -327,7 +336,7 @@ function navigateTo(sec) {
 }
 
 function activateSection(sec) {
-  const valid = ['dashboard','lessons','quiz','lab','leaderboard','resources','subnet','topology']
+  const valid = ['dashboard','lessons','quiz','lab','leaderboard','resources','subnet','topology','certguide']
   const target = valid.includes(sec) ? sec : 'dashboard'
   document.querySelectorAll('.ds').forEach(s => s.classList.remove('active'))
   document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'))
@@ -348,10 +357,11 @@ function setupHandlers() {
     })
   })
 
-  document.getElementById('qa-quiz')?.addEventListener('click',     () => navigateTo('quiz'))
-  document.getElementById('qa-lab')?.addEventListener('click',      () => navigateTo('lab'))
-  document.getElementById('qa-subnet')?.addEventListener('click',   () => navigateTo('subnet'))
-  document.getElementById('qa-topology')?.addEventListener('click', () => navigateTo('topology'))
+  document.getElementById('qa-quiz')?.addEventListener('click',      () => navigateTo('quiz'))
+  document.getElementById('qa-lab')?.addEventListener('click',       () => navigateTo('lab'))
+  document.getElementById('qa-subnet')?.addEventListener('click',    () => navigateTo('subnet'))
+  document.getElementById('qa-topology')?.addEventListener('click',  () => navigateTo('topology'))
+  document.getElementById('qa-certguide')?.addEventListener('click', () => navigateTo('certguide'))
   document.getElementById('path-fundamentals')?.addEventListener('click', () => navigateTo('lessons'))
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
