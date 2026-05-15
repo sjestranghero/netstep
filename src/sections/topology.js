@@ -8,6 +8,7 @@ export function topoHTML() {
           <h1 class="dtitle">🗺️ Network Topology Builder</h1>
           <p class="dsub">Drag devices · Draw cables · Complete the task · Earn XP</p>
         </div>
+        <div class="topo-xp-chip" id="topo-xp-chip">🏆 0 XP earned</div>
       </div>
 
       <div class="topo-toolbar">
@@ -28,6 +29,14 @@ export function topoHTML() {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="12" height="4" rx="1"/><rect x="2" y="8" width="12" height="4" rx="1"/><circle cx="12" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="10" r="1" fill="currentColor" stroke="none"/></svg>
           Server
         </div>
+        <div class="topo-device-btn" draggable="true" data-type="firewall">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="1"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="6" y1="3" x2="6" y2="13"/><line x1="10" y1="3" x2="10" y2="13"/></svg>
+          Firewall
+        </div>
+        <div class="topo-device-btn" draggable="true" data-type="ap">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="11" r="2"/><path d="M4.5 8.5 a5 5 0 0 1 7 0"/><path d="M2.5 6.5 a8 8 0 0 1 11 0"/></svg>
+          AP
+        </div>
         <div class="topo-sep"></div>
         <button class="topo-mode-btn active" id="topo-move-btn">Move</button>
         <button class="topo-mode-btn" id="topo-cable-btn">Cable</button>
@@ -42,10 +51,30 @@ export function topoHTML() {
 
       <div class="topo-task-row">
         <div class="topo-task-tabs" id="topo-task-tabs">
-          <button class="topo-task-tab active" data-task="0">Basic LAN</button>
-          <button class="topo-task-tab" data-task="1">Star topology</button>
-          <button class="topo-task-tab" data-task="2">Router + 2 LANs</button>
-          <button class="topo-task-tab" data-task="3">Server farm</button>
+          <button class="topo-task-tab active" data-task="0">
+            <span class="tab-diff easy">Easy</span> Basic LAN
+          </button>
+          <button class="topo-task-tab" data-task="1">
+            <span class="tab-diff easy">Easy</span> Star Topology
+          </button>
+          <button class="topo-task-tab" data-task="2">
+            <span class="tab-diff medium">Med</span> Dual LAN
+          </button>
+          <button class="topo-task-tab" data-task="3">
+            <span class="tab-diff medium">Med</span> Server Farm
+          </button>
+          <button class="topo-task-tab" data-task="4">
+            <span class="tab-diff medium">Med</span> Secure Network
+          </button>
+          <button class="topo-task-tab" data-task="5">
+            <span class="tab-diff medium">Med</span> Wireless LAN
+          </button>
+          <button class="topo-task-tab" data-task="6">
+            <span class="tab-diff hard">Hard</span> Enterprise Edge
+          </button>
+          <button class="topo-task-tab" data-task="7">
+            <span class="tab-diff hard">Hard</span> DMZ Setup
+          </button>
         </div>
       </div>
 
@@ -55,7 +84,8 @@ export function topoHTML() {
           <div class="topo-task-title" id="topo-task-title">Build a basic LAN</div>
           <div class="topo-task-desc" id="topo-task-desc">Place 1 router, 1 switch, and 2 PCs. Connect them all with cables.</div>
         </div>
-        <button class="topo-check-btn" id="topo-check-btn">Check</button>
+        <div class="topo-task-xp" id="topo-task-xp">+25 XP</div>
+        <button class="topo-check-btn" id="topo-check-btn">Check ✓</button>
       </div>
 
       <div class="topo-feedback" id="topo-feedback"></div>
@@ -69,7 +99,6 @@ export function setupTopo() {
   const ctx = canvas.getContext('2d')
   const wrap = document.getElementById('topo-canvas-wrap')
 
-  // KEY FIX: sync canvas internal size to its displayed size
   function resizeCanvas() {
     const rect = wrap.getBoundingClientRect()
     canvas.width = rect.width
@@ -77,13 +106,11 @@ export function setupTopo() {
     draw()
   }
 
-  // Run after layout is ready
   requestAnimationFrame(() => {
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
   })
 
-  // KEY FIX: always get mouse position relative to canvas actual size
   function getPos(e) {
     const rect = canvas.getBoundingClientRect()
     const scaleX = canvas.width / rect.width
@@ -95,54 +122,156 @@ export function setupTopo() {
   }
 
   const TASKS = [
+    // ── EASY ──────────────────────────────────────────────────────────────────
     {
-      title: 'Build a basic LAN',
+      title: 'Build a Basic LAN',
       desc: 'Place 1 router, 1 switch, and 2 PCs. Connect them all with cables.',
+      xp: 25,
+      difficulty: 'easy',
       check: (devices, connections) => {
-        const counts = getCounts(devices)
-        if ((counts.router || 0) < 1) return { ok: false, msg: 'Missing a router! Add at least 1 router.' }
-        if ((counts.switch || 0) < 1) return { ok: false, msg: 'Missing a switch! Add at least 1 switch.' }
-        if ((counts.pc || 0) < 2) return { ok: false, msg: 'Add at least 2 PCs as end devices.' }
-        if (!allConnected(devices, connections)) return { ok: false, msg: 'Some devices have no cables! Connect everything.' }
-        return { ok: true, msg: 'Basic LAN complete! Router → Switch → PCs. +25 XP earned!' }
+        const c = getCounts(devices)
+        if ((c.router || 0) < 1) return { ok: false, msg: 'Missing a router. Add at least 1 router.' }
+        if ((c.switch || 0) < 1) return { ok: false, msg: 'Missing a switch. Add at least 1 switch.' }
+        if ((c.pc || 0) < 2)    return { ok: false, msg: 'Add at least 2 PCs as end devices.' }
+        if (!allConnected(devices, connections)) return { ok: false, msg: 'Some devices have no cables. Connect everything.' }
+        return { ok: true, msg: 'Basic LAN complete! Router → Switch → PCs. Classic LAN structure. +25 XP!' }
       }
     },
     {
-      title: 'Build a star topology',
-      desc: 'Place 1 switch in the center and connect at least 4 PCs to it.',
+      title: 'Build a Star Topology',
+      desc: 'Place 1 switch in the center and connect at least 4 PCs to it (no router needed).',
+      xp: 30,
+      difficulty: 'easy',
       check: (devices, connections) => {
-        const counts = getCounts(devices)
-        if ((counts.switch || 0) < 1) return { ok: false, msg: 'Add a switch as the center of your star topology.' }
-        if ((counts.pc || 0) < 4) return { ok: false, msg: 'Add at least 4 PCs connected to the switch.' }
+        const c = getCounts(devices)
+        if ((c.switch || 0) < 1) return { ok: false, msg: 'Add a switch as the center of the star.' }
+        if ((c.pc || 0) < 4)    return { ok: false, msg: 'Add at least 4 PCs.' }
         const sw = devices.find(d => d.type === 'switch')
-        const swConns = connections.filter(c => c.a === sw.id || c.b === sw.id).length
-        if (swConns < 4) return { ok: false, msg: 'Connect at least 4 devices to the switch.' }
-        return { ok: true, msg: 'Star topology complete! All PCs connect to one central switch. +30 XP!' }
+        const swConns = connections.filter(cn => cn.a === sw.id || cn.b === sw.id).length
+        if (swConns < 4) return { ok: false, msg: 'Connect at least 4 devices directly to the switch.' }
+        return { ok: true, msg: 'Star topology complete! All PCs connect through one central switch. +30 XP!' }
       }
     },
+
+    // ── MEDIUM ────────────────────────────────────────────────────────────────
     {
-      title: 'Router connecting 2 LANs',
+      title: 'Router Connecting 2 LANs',
       desc: 'Place 1 router, 2 switches, and 2 PCs per switch. Connect each switch to the router.',
+      xp: 35,
+      difficulty: 'medium',
       check: (devices, connections) => {
-        const counts = getCounts(devices)
-        if ((counts.router || 0) < 1) return { ok: false, msg: 'Add a router to connect the two LANs.' }
-        if ((counts.switch || 0) < 2) return { ok: false, msg: 'Add 2 switches — one for each LAN.' }
-        if ((counts.pc || 0) < 4) return { ok: false, msg: 'Add at least 4 PCs (2 per LAN).' }
+        const c = getCounts(devices)
+        if ((c.router || 0) < 1) return { ok: false, msg: 'Add a router to connect the two LANs.' }
+        if ((c.switch || 0) < 2) return { ok: false, msg: 'Add 2 switches — one for each LAN segment.' }
+        if ((c.pc || 0) < 4)    return { ok: false, msg: 'Add at least 4 PCs (2 per LAN).' }
+        const router = devices.find(d => d.type === 'router')
+        const routerConns = connections.filter(cn => cn.a === router.id || cn.b === router.id).length
+        if (routerConns < 2) return { ok: false, msg: 'The router must connect to both switches.' }
         if (!allConnected(devices, connections)) return { ok: false, msg: 'Connect all devices with cables.' }
-        return { ok: true, msg: 'Inter-LAN routing setup complete! Router connects two separate LANs. +35 XP!' }
+        return { ok: true, msg: 'Inter-LAN routing complete! The router bridges two separate LANs. +35 XP!' }
       }
     },
     {
-      title: 'Server farm',
-      desc: 'Place 1 router, 1 switch, 2 servers, and 1 PC. Connect them all.',
+      title: 'Server Farm',
+      desc: 'Place 1 router, 1 switch, 3 servers, and 2 PCs. Connect them all. Servers should connect through the switch.',
+      xp: 35,
+      difficulty: 'medium',
       check: (devices, connections) => {
-        const counts = getCounts(devices)
-        if ((counts.router || 0) < 1) return { ok: false, msg: 'Add a router to the topology.' }
-        if ((counts.switch || 0) < 1) return { ok: false, msg: 'Add a switch to connect the servers.' }
-        if ((counts.server || 0) < 2) return { ok: false, msg: 'Add at least 2 servers.' }
-        if ((counts.pc || 0) < 1) return { ok: false, msg: 'Add at least 1 PC as a client.' }
+        const c = getCounts(devices)
+        if ((c.router || 0) < 1)  return { ok: false, msg: 'Add a router.' }
+        if ((c.switch || 0) < 1)  return { ok: false, msg: 'Add a switch to connect the servers.' }
+        if ((c.server || 0) < 3)  return { ok: false, msg: 'Add at least 3 servers.' }
+        if ((c.pc || 0) < 2)      return { ok: false, msg: 'Add at least 2 PCs as clients.' }
+        const sw = devices.find(d => d.type === 'switch')
+        const servers = devices.filter(d => d.type === 'server')
+        const serversThroughSwitch = servers.filter(s =>
+          connections.some(cn => cn.a === s.id || cn.b === s.id)
+        ).length
+        if (serversThroughSwitch < 3) return { ok: false, msg: 'Connect all 3 servers to the switch.' }
         if (!allConnected(devices, connections)) return { ok: false, msg: 'Connect all devices with cables.' }
-        return { ok: true, msg: 'Server farm topology complete! Clients access servers through the switch. +30 XP!' }
+        return { ok: true, msg: 'Server farm complete! Clients access servers through a dedicated switch. +35 XP!' }
+      }
+    },
+    {
+      title: 'Secure Network with Firewall',
+      desc: 'Place 1 firewall between the router and your internal switch. Add 1 router, 1 firewall, 1 switch, and 3 PCs. The firewall must connect to both the router and the switch.',
+      xp: 40,
+      difficulty: 'medium',
+      check: (devices, connections) => {
+        const c = getCounts(devices)
+        if ((c.router   || 0) < 1)   return { ok: false, msg: 'Add a router (simulates internet uplink).' }
+        if ((c.firewall || 0) < 1)   return { ok: false, msg: 'Add a firewall — this is the core of the task!' }
+        if ((c.switch   || 0) < 1)   return { ok: false, msg: 'Add a switch for the internal LAN.' }
+        if ((c.pc       || 0) < 3)   return { ok: false, msg: 'Add at least 3 PCs behind the firewall.' }
+        const fw  = devices.find(d => d.type === 'firewall')
+        const fwConns = connections.filter(cn => cn.a === fw.id || cn.b === fw.id).length
+        if (fwConns < 2) return { ok: false, msg: 'The firewall must connect to the router AND the internal switch.' }
+        if (!allConnected(devices, connections)) return { ok: false, msg: 'Connect all devices with cables.' }
+        return { ok: true, msg: 'Secure network complete! Firewall sits between WAN and LAN — textbook perimeter security. +40 XP!' }
+      }
+    },
+    {
+      title: 'Wireless LAN (WLAN)',
+      desc: 'Place 1 router, 1 switch, 2 access points (AP), and 3 PCs. Each AP must connect to the switch.',
+      xp: 40,
+      difficulty: 'medium',
+      check: (devices, connections) => {
+        const c = getCounts(devices)
+        if ((c.router || 0) < 1) return { ok: false, msg: 'Add a router for WAN/DHCP.' }
+        if ((c.switch || 0) < 1) return { ok: false, msg: 'Add a switch to backhaul the APs.' }
+        if ((c.ap     || 0) < 2) return { ok: false, msg: 'Add at least 2 Access Points.' }
+        if ((c.pc     || 0) < 3) return { ok: false, msg: 'Add at least 3 PCs (wireless clients).' }
+        const aps = devices.filter(d => d.type === 'ap')
+        const apConnected = aps.every(ap =>
+          connections.some(cn => cn.a === ap.id || cn.b === ap.id)
+        )
+        if (!apConnected) return { ok: false, msg: 'Both APs must be connected to the switch via cable (wired backhaul).' }
+        if (!allConnected(devices, connections)) return { ok: false, msg: 'Connect all devices with cables.' }
+        return { ok: true, msg: 'WLAN complete! APs wired to switch provides wireless coverage across two zones. +40 XP!' }
+      }
+    },
+
+    // ── HARD ──────────────────────────────────────────────────────────────────
+    {
+      title: 'Enterprise Edge Network',
+      desc: 'Build a 3-tier network: 1 core router → 2 distribution switches → each distribution switch connects to 2 access switches → each access switch connects to 2 PCs. Place 1 server off one distribution switch.',
+      xp: 60,
+      difficulty: 'hard',
+      check: (devices, connections) => {
+        const c = getCounts(devices)
+        if ((c.router || 0) < 1)  return { ok: false, msg: 'Add 1 core router at the top.' }
+        if ((c.switch || 0) < 6)  return { ok: false, msg: 'Need at least 6 switches: 2 distribution + 4 access layer switches.' }
+        if ((c.pc     || 0) < 8)  return { ok: false, msg: 'Add at least 8 PCs (2 per access switch).' }
+        if ((c.server || 0) < 1)  return { ok: false, msg: 'Add at least 1 server connected to a distribution switch.' }
+        const router = devices.find(d => d.type === 'router')
+        const routerConns = connections.filter(cn => cn.a === router.id || cn.b === router.id).length
+        if (routerConns < 2) return { ok: false, msg: 'Core router must connect to both distribution switches.' }
+        if (!allConnected(devices, connections)) return { ok: false, msg: 'Connect all devices. No isolated nodes allowed.' }
+        return { ok: true, msg: 'Enterprise 3-tier topology complete! Core → Distribution → Access is how real campuses are built. +60 XP!' }
+      }
+    },
+    {
+      title: 'DMZ (Demilitarized Zone)',
+      desc: 'Build a DMZ: 1 router connects to 2 firewalls. One firewall protects the DMZ (1 server). The other protects the internal LAN (1 switch + 3 PCs). The DMZ server is accessible from outside; internal PCs are not.',
+      xp: 60,
+      difficulty: 'hard',
+      check: (devices, connections) => {
+        const c = getCounts(devices)
+        if ((c.router   || 0) < 1) return { ok: false, msg: 'Add a router (represents the internet edge).' }
+        if ((c.firewall || 0) < 2) return { ok: false, msg: 'Need 2 firewalls: one for the DMZ, one for the internal LAN.' }
+        if ((c.server   || 0) < 1) return { ok: false, msg: 'Add at least 1 server in the DMZ.' }
+        if ((c.switch   || 0) < 1) return { ok: false, msg: 'Add a switch for the internal LAN behind the second firewall.' }
+        if ((c.pc       || 0) < 3) return { ok: false, msg: 'Add at least 3 PCs on the internal LAN.' }
+        const router = devices.find(d => d.type === 'router')
+        const routerConns = connections.filter(cn => cn.a === router.id || cn.b === router.id).length
+        if (routerConns < 2) return { ok: false, msg: 'Router must connect to both firewalls (one per zone).' }
+        const firewalls = devices.filter(d => d.type === 'firewall')
+        const bothFwConnected = firewalls.every(fw =>
+          connections.filter(cn => cn.a === fw.id || cn.b === fw.id).length >= 2
+        )
+        if (!bothFwConnected) return { ok: false, msg: 'Each firewall must connect to the router AND its zone (server or switch).' }
+        if (!allConnected(devices, connections)) return { ok: false, msg: 'Connect all devices with cables.' }
+        return { ok: true, msg: 'DMZ setup complete! Public servers in the DMZ, private LAN behind the second firewall — enterprise-grade security design. +60 XP!' }
       }
     }
   ]
@@ -150,10 +279,25 @@ export function setupTopo() {
   let devices = [], connections = [], mode = 'move'
   let dragging = null, dragOffX = 0, dragOffY = 0
   let cableFrom = null, nextId = 1, currentTask = 0
-  let mouseX = 0, mouseY = 0
+  let mouseX = 0, mouseY = 0, totalXp = 0
+  const completedTasks = new Set()
 
-  const COLORS = { router: '#1C4B62', switch: '#27500A', pc: '#633806', server: '#3C3489' }
-  const LABELS = { router: 'Router', switch: 'Switch', pc: 'PC', server: 'Server' }
+  const COLORS = {
+    router:   '#1C4B62',
+    switch:   '#27500A',
+    pc:       '#633806',
+    server:   '#3C3489',
+    firewall: '#7B1E1E',
+    ap:       '#1A5C5C'
+  }
+  const LABELS = {
+    router:   'Router',
+    switch:   'Switch',
+    pc:       'PC',
+    server:   'Server',
+    firewall: 'FW',
+    ap:       'AP'
+  }
 
   function getCounts(devs) {
     const c = {}
@@ -163,6 +307,14 @@ export function setupTopo() {
 
   function allConnected(devs, conns) {
     return devs.every(d => conns.some(c => c.a === d.id || c.b === d.id))
+  }
+
+  function updateTaskUI() {
+    const t = TASKS[currentTask]
+    document.getElementById('topo-task-title').textContent = t.title
+    document.getElementById('topo-task-desc').textContent = t.desc
+    document.getElementById('topo-task-xp').textContent = `+${t.xp} XP`
+    document.getElementById('topo-feedback').className = 'topo-feedback'
   }
 
   // Drag from toolbar onto canvas
@@ -195,24 +347,26 @@ export function setupTopo() {
     document.getElementById('topo-cable-btn').classList.toggle('active', m === 'cable')
     document.getElementById('topo-delete-btn').classList.toggle('active', m === 'delete')
     const hints = {
-      move: 'Drag devices to reposition them',
-      cable: 'Click a device to start a cable, then click another to connect',
+      move:   'Drag devices to reposition them',
+      cable:  'Click a device to start a cable, then click another to connect',
       delete: 'Click a device or cable to delete it'
     }
-    document.getElementById('topo-hint').textContent = hints[m]
-    document.getElementById('topo-hint').style.display = 'block'
-    setTimeout(() => { document.getElementById('topo-hint').style.display = 'none' }, 2000)
+    const hintEl = document.getElementById('topo-hint')
+    hintEl.textContent = hints[m]
+    hintEl.style.display = 'block'
+    setTimeout(() => { hintEl.style.display = 'none' }, 2000)
     draw()
   }
 
-  document.getElementById('topo-move-btn').addEventListener('click', () => setMode('move'))
-  document.getElementById('topo-cable-btn').addEventListener('click', () => setMode('cable'))
+  document.getElementById('topo-move-btn').addEventListener('click',   () => setMode('move'))
+  document.getElementById('topo-cable-btn').addEventListener('click',  () => setMode('cable'))
   document.getElementById('topo-delete-btn').addEventListener('click', () => setMode('delete'))
-  document.getElementById('topo-clear-btn').addEventListener('click', () => {
+  document.getElementById('topo-clear-btn').addEventListener('click',  () => {
     devices = []; connections = []; cableFrom = null
     document.getElementById('topo-feedback').className = 'topo-feedback'
-    document.getElementById('topo-hint').style.display = 'block'
-    document.getElementById('topo-hint').textContent = 'Drag devices onto the canvas to get started'
+    const hintEl = document.getElementById('topo-hint')
+    hintEl.style.display = 'block'
+    hintEl.textContent = 'Drag devices onto the canvas to get started'
     draw()
   })
 
@@ -221,19 +375,27 @@ export function setupTopo() {
       document.querySelectorAll('.topo-task-tab').forEach(t => t.classList.remove('active'))
       tab.classList.add('active')
       currentTask = parseInt(tab.dataset.task)
-      const t = TASKS[currentTask]
-      document.getElementById('topo-task-title').textContent = t.title
-      document.getElementById('topo-task-desc').textContent = t.desc
-      document.getElementById('topo-feedback').className = 'topo-feedback'
-      devices = []; connections = []; cableFrom = null; draw()
+      devices = []; connections = []; cableFrom = null
+      updateTaskUI()
+      draw()
     })
   })
 
   document.getElementById('topo-check-btn').addEventListener('click', () => {
-    const result = TASKS[currentTask].check(devices, connections)
-    const fb = document.getElementById('topo-feedback')
+    const task   = TASKS[currentTask]
+    const result = task.check(devices, connections)
+    const fb     = document.getElementById('topo-feedback')
     fb.className = 'topo-feedback ' + (result.ok ? 'ok' : 'err')
     fb.textContent = result.ok ? '✅ ' + result.msg : '❌ ' + result.msg
+
+    if (result.ok && !completedTasks.has(currentTask)) {
+      completedTasks.add(currentTask)
+      totalXp += task.xp
+      document.getElementById('topo-xp-chip').textContent = `🏆 ${totalXp} XP earned`
+      // Mark tab as completed
+      const tab = document.querySelector(`.topo-task-tab[data-task="${currentTask}"]`)
+      if (tab) tab.classList.add('done')
+    }
   })
 
   function getDeviceAt(x, y) {
@@ -262,16 +424,14 @@ export function setupTopo() {
 
   canvas.addEventListener('mousemove', e => {
     const pos = getPos(e)
-    mouseX = pos.x
-    mouseY = pos.y
+    mouseX = pos.x; mouseY = pos.y
 
     if (dragging) {
-      dragging.x = Math.max(28, Math.min(canvas.width - 28, mouseX - dragOffX))
+      dragging.x = Math.max(28, Math.min(canvas.width  - 28, mouseX - dragOffX))
       dragging.y = Math.max(28, Math.min(canvas.height - 28, mouseY - dragOffY))
     }
     draw()
 
-    // Draw live cable preview
     if (mode === 'cable' && cableFrom) {
       ctx.beginPath()
       ctx.moveTo(cableFrom.x, cableFrom.y)
@@ -310,8 +470,7 @@ export function setupTopo() {
           draw()
         }
       } else {
-        cableFrom = null
-        draw()
+        cableFrom = null; draw()
       }
     } else if (mode === 'delete') {
       if (hit) {
@@ -329,6 +488,22 @@ export function setupTopo() {
     dragging = null
     canvas.style.cursor = 'default'
   })
+
+  // Touch support for mobile
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }))
+  }, { passive: false })
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }))
+  }, { passive: false })
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault()
+    canvas.dispatchEvent(new MouseEvent('mouseup', {}))
+  }, { passive: false })
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -387,8 +562,22 @@ export function setupTopo() {
       ctx.strokeRect(x-8,y-7,16,5); ctx.strokeRect(x-8,y,16,5)
       ctx.beginPath(); ctx.arc(x+5,y-4.5,1.5,0,Math.PI*2); ctx.fill()
       ctx.beginPath(); ctx.arc(x+5,y+2.5,1.5,0,Math.PI*2); ctx.fill()
+    } else if (type === 'firewall') {
+      ctx.strokeRect(x-9,y-7,18,14)
+      ctx.beginPath(); ctx.moveTo(x-9,y); ctx.lineTo(x+9,y); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x-3,y-7); ctx.lineTo(x-3,y+7); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x+3,y-7); ctx.lineTo(x+3,y+7); ctx.stroke()
+    } else if (type === 'ap') {
+      ctx.beginPath(); ctx.arc(x,y+3,3,0,Math.PI*2); ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(x,y+3,7,Math.PI*1.2,Math.PI*1.8,false)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(x,y+3,11,Math.PI*1.25,Math.PI*1.75,false)
+      ctx.stroke()
     }
   }
 
+  updateTaskUI()
   draw()
 }
